@@ -2,7 +2,7 @@
 
 Modern sticky notes application built with Python, GTK4, and Libadwaita for Linux.
 
-### **Version**: 2.0.3
+### **Version**: 2.1.0
 _______________
 
 > [!IMPORTANT]
@@ -22,7 +22,7 @@ _______________
 ## 📑 Table of Contents
 - [Features](#-features)
 - [Installation](#installation)
-  - [Snap Store (Recommended)](#snap-store-recommended)
+  - [Snap Store (Upstream)](#snap-store-upstream)
   - [DEB Package](#deb-package)
 - [Troubleshooting Localization](#troubleshooting-localization)
 - [Credits](#credits)
@@ -50,12 +50,17 @@ Use the app in multiple languages, including:
 - 🖥️ Modern GNOME Experience
 A refreshed interface that follows current GNOME / Adwaita design guidelines for a native look and feel.
 - Support of dark theme.
+- Adjustable note transparency: open **Settings**, lower **Note opacity (%)**
+  (20–100%), and click **Save Settings**. All open notes update immediately and
+  become fully opaque while hovered. The setting is remembered for new notes
+  and future sessions; 100% disables transparency.
 
 ## Installation
 
-### Snap Store (Recommended)
+### Snap Store (Upstream)
 
-The easiest way to install LinSticky is via the Snap Store:
+The upstream LinSticky is available via the Snap Store. This fork's transparency
+feature is available in the DEB release below or by running this checkout.
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/linsticky)
 
@@ -65,19 +70,38 @@ sudo snap install linsticky
 
 ### DEB Package
 
-You can download the latest .deb package from the [Releases page](https://github.com/pavel-glukhov/linsticky/releases).
+You can download this fork's .deb package from the [Releases page](https://github.com/Rdlenke/linsticky/releases).
 
 ```bash
 # 1. Download the package
-curl -O -L https://github.com/pavel-glukhov/linsticky/releases/download/v2.0.3/io.linsticky.app_2.0.3_all.deb
+curl -O -L https://github.com/Rdlenke/linsticky/releases/download/v2.1.0/io.linsticky.app_2.1.0_all.deb
 
 # 2. Install dependencies
 sudo apt update
 sudo apt install -y python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-gtk-3.0 gir1.2-ayatanaappindicator3-0.1 gettext
 
 # 3. Install the package
-sudo dpkg -i io.linsticky.app_2.0.3_all.deb
+sudo apt install ./io.linsticky.app_2.1.0_all.deb
 ```
+
+### Run or build from source
+
+After installing the dependencies above, quit any running LinSticky instance and run:
+
+```bash
+python3 linsticky/main.py
+```
+
+To build a DEB package, install `jq` and run `bash build_deb_package.sh`.
+The package is written to `dist/`.
+
+Run the regression tests with `python3 -m unittest discover -s tests -v`.
+GTK integration tests require a display (or `xvfb-run -a` in a headless environment).
+
+Releases are published by `.github/workflows/release.yml` when a `v*` tag is pushed.
+Update the version in `linsticky/app_info.json`, `snap/snapcraft.yaml`, and this
+README, and add `release-notes/<tag>.md` before tagging. The workflow tests the
+tagged source and attaches a DEB package and SHA-256 checksum to the GitHub release.
 
 ## Troubleshooting Localization
 

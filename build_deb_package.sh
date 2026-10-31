@@ -3,9 +3,10 @@
 # Script to create a Debian package for LinSticky
 # =========================================================
 
-set -e
+set -euo pipefail
 
-PACKAGE_DIR="linsticky_deb"
+PACKAGE_DIR=$(mktemp -d -t linsticky-deb.XXXXXX)
+trap 'rm -rf "$PACKAGE_DIR"' EXIT
 DEBIAN_DIR="$PACKAGE_DIR/DEBIAN"
 USR_BIN_DIR="$PACKAGE_DIR/usr/local/bin"
 USR_SHARE_DIR="$PACKAGE_DIR/usr/share"
@@ -21,13 +22,13 @@ ICON_PATH="/usr/share/linsticky/resources/icons/app.png"
 # Create necessary directories if they don't exist
 # ----------------------
 for dir in "$DEBIAN_DIR" "$USR_BIN_DIR" "$APPLICATIONS_DIR" "$APP_DIR" "$METAINFO_DIR"; do
-    [ ! -d "$dir" ] && mkdir -p "$dir"
+    mkdir -p "$dir"
 done
 
 # ----------------------
 # Copy all application files to /usr/share/linsticky
 # ----------------------
-cp -r linsticky/* "$APP_DIR/"
+tar -C linsticky --exclude='__pycache__' --exclude='*.py[co]' -cf - . | tar -C "$APP_DIR" -xf -
 
 # ----------------------
 # Read application info from JSON
@@ -70,19 +71,6 @@ Description: $DESCRIPTION
 EOL
 
 # ----------------------
-# Create DEBIAN/postinst to check PyQt6
-# ----------------------
-cat > "$DEBIAN_DIR/postinst" <<'EOL'
-cat > "$DEBIAN_DIR/postinst" <<'EOL'
-#!/bin/bash
-# Проверка наличия PyGObject (GTK bindings)
-if ! python3 -c "import gi" &>/dev/null; then
-    echo "Warning: python3-gi is not installed. Please run: sudo apt install python3-gi python3-adwaita"
-fi
-EOL
-chmod +x "$DEBIAN_DIR/postinst"
-
-# ----------------------
 # Create desktop entry file
 # ----------------------
 DESKTOP_FILE="$APPLICATIONS_DIR/$APP_EXEC.desktop"
@@ -122,7 +110,8 @@ EOL
 # ----------------------
 # Build the .deb package with flags
 # ----------------------
-DEB_FILE="${SERVICE_NAME}_${VERSION}_${ARCHITECTURE}.deb"
+mkdir -p dist
+DEB_FILE="dist/${SERVICE_NAME}_${VERSION}_${ARCHITECTURE}.deb"
 dpkg-deb --build --root-owner-group --verbose "$PACKAGE_DIR" "$DEB_FILE"
 
 echo ""

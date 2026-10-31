@@ -17,6 +17,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#: linsticky/views/settings_view.py
+msgid "Note opacity (%)"
+msgstr ""
+
+#: linsticky/views/settings_view.py
+msgid "Lower values make notes transparent. Hover to restore full opacity."
+msgstr ""
+
 # /linsticky/application_manager.py:224
 #, python-brace-format
 msgid "© {year} {author}"

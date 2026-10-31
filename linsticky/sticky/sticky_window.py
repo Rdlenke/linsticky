@@ -84,8 +84,21 @@ class StickyWindow(Adw.Window, StickyFormatting, StickyActions, StickyUI, Sticky
         focus_ctrl = Gtk.EventControllerFocus()
         focus_ctrl.connect("leave", lambda *_: self.save())
         self.add_controller(focus_ctrl)
+
+        # Track the whole note, including its child widgets, so moving between
+        # the editor and controls does not make the note fade in and out.
+        self.motion_controller = Gtk.EventControllerMotion()
+        self.motion_controller.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+        self.motion_controller.connect("notify::contains-pointer", self._update_opacity)
+        self.add_controller(self.motion_controller)
+        self._update_opacity()
         
         self.save_timer_id = GLib.timeout_add_seconds(2, self.save)
+
+    def _update_opacity(self, *_):
+        """Restore full opacity while the pointer is anywhere over the note."""
+        opacity = 1.0 if self.motion_controller.contains_pointer() else self.config.get("note_opacity", 1.0)
+        self.set_opacity(opacity)
 
     def apply_styles(self):
         """
@@ -249,6 +262,7 @@ class StickyWindow(Adw.Window, StickyFormatting, StickyActions, StickyUI, Sticky
             new_config: The new configuration dictionary.
         """
         self.config = new_config
+        self._update_opacity()
         if hasattr(self, 'header_box'):
             self.main_box.remove(self.header_box)
         self.setup_header()

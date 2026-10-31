@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Check release version and notes
+        run: |
+          version=$(jq -r .version linsticky/app_info.json)
+          test "$GITHUB_REF_NAME" = "v$version"
+          test -f "release-notes/$GITHUB_REF_NAME.md"
+          echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Install build and test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq python3-gi python3-gi-cairo python3-cairo \
+            gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-gtk-3.0 \
+            gir1.2-ayatanaappindicator3-0.1 gettext xvfb xauth
+
+      - name: Run tests
+        run: xvfb-run -a python3 -m unittest discover -s tests -v
+
+      - name: Build Debian package
+        run: |
+          bash build_deb_package.sh
+          dpkg-deb --info "dist/io.linsticky.app_${RELEASE_VERSION}_all.deb"
+          cd dist
+          sha256sum "io.linsticky.app_${RELEASE_VERSION}_all.deb" > SHA256SUMS
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/io.linsticky.app_${RELEASE_VERSION}_all.deb" dist/SHA256SUMS \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "LinSticky $RELEASE_VERSION" \
+            --notes-file "release-notes/$GITHUB_REF_NAME.md"

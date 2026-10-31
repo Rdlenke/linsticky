@@ -97,6 +97,17 @@ class SettingsView(Gtk.Box):
         row_scale.add_suffix(self.scale_spin)
         list_box.append(row_scale)
 
+        row_opacity = Adw.ActionRow(
+            title=_("Note opacity (%)"),
+            subtitle=_("Lower values make notes transparent. Hover to restore full opacity.")
+        )
+        self.opacity_spin = Gtk.SpinButton.new_with_range(20, 100, 5)
+        self.opacity_spin.set_value(self.config["note_opacity"] * 100)
+        self.opacity_spin.set_valign(Gtk.Align.CENTER)
+        row_opacity.add_suffix(self.opacity_spin)
+        row_opacity.set_activatable_widget(self.opacity_spin)
+        list_box.append(row_opacity)
+
         row_db = Adw.ActionRow(title=_("Database Path"))
         self.db_entry = Gtk.Entry(text=str(self.config.get("db_path", "")))
         self.db_entry.set_hexpand(True)
@@ -171,6 +182,7 @@ class SettingsView(Gtk.Box):
         This ensures synchronization if settings were changed via the sticker customization dialog.
         """
         self.config = ConfigManager.load()
+        self.opacity_spin.set_value(self.config["note_opacity"] * 100)
         
         # Update formatting switches
         current_fmt = self.config.get("formatting", {})
@@ -320,6 +332,7 @@ class SettingsView(Gtk.Box):
             
         fmt_settings = {key: switch.get_active() for key, switch in self.switches.items()}
         self.config["formatting"] = fmt_settings
+        self.config["note_opacity"] = self.opacity_spin.get_value() / 100
 
         ConfigManager.save(self.config)
 

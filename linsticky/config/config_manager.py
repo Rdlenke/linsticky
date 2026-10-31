@@ -8,6 +8,7 @@ Snap packages.
 """
 import os
 import json
+import math
 
 # --- Configuration Path Setup ---
 # Compatibility Note:
@@ -55,6 +56,7 @@ class ConfigManager:
             "backend": "wayland",
             "db_path": db_path,
             "ui_scale": 1.0,
+            "note_opacity": 1.0,
             "language": "en",
             "palette": ['#FFF59D', '#F8BBD0', '#C8E6C9', '#B3E5FC'],
             "text_colors": [
@@ -104,6 +106,15 @@ class ConfigManager:
             # Restore formatting if it got corrupted.
             if not isinstance(config.get("formatting"), dict):
                 config["formatting"] = defaults["formatting"]
+
+            # Keep notes visible even when the configuration is edited by hand.
+            try:
+                opacity = float(config["note_opacity"])
+                if not math.isfinite(opacity):
+                    opacity = defaults["note_opacity"]
+                config["note_opacity"] = max(0.2, min(1.0, opacity))
+            except (ValueError, TypeError, OverflowError):
+                config["note_opacity"] = defaults["note_opacity"]
 
             return config
         except (json.JSONDecodeError, OSError) as e:
