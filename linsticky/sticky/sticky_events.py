@@ -96,10 +96,14 @@ class StickyEvents:
 
     def _on_key_pressed(self, controller, keyval, keycode, state) -> bool:
         """
-        Handles keyboard shortcuts for text formatting (e.g., Ctrl+B for bold).
+        Handles bullet continuation and keyboard shortcuts for text formatting.
         """
         ctrl_pressed = (state & Gdk.ModifierType.CONTROL_MASK)
         shift_pressed = (state & Gdk.ModifierType.SHIFT_MASK)
+
+        shortcut_modifiers = state & Gtk.accelerator_get_default_mod_mask()
+        if keyval in (Gdk.KEY_Return, Gdk.KEY_KP_Enter) and not shortcut_modifiers:
+            return self.continue_bullet_list()
 
         if not ctrl_pressed:
             return False

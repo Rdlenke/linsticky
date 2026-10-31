@@ -2,7 +2,7 @@
 
 Modern sticky notes application built with Python, GTK4, and Libadwaita for Linux.
 
-### **Version**: 2.1.0
+### **Version**: 2.2.0
 _______________
 
 > [!IMPORTANT]
@@ -36,6 +36,8 @@ Create, edit, and organize your notes in a clean, distraction-free interface des
 Personalize your notes by choosing colors that match your workflow and mood.
 - ✍️ Rich Text Preservation
 All text formatting is reliably saved, so your notes always look exactly as intended.
+- Bulleted lists continue automatically when you press **Enter**. Press **Enter**
+  on an empty bullet to end the list, or **Shift+Enter** for a plain line break.
 - 🌍 Multilingual Support
 Use the app in multiple languages, including:
   - English
@@ -74,14 +76,14 @@ You can download this fork's .deb package from the [Releases page](https://githu
 
 ```bash
 # 1. Download the package
-curl -O -L https://github.com/Rdlenke/linsticky/releases/download/v2.1.0/io.linsticky.app_2.1.0_all.deb
+curl -O -L https://github.com/Rdlenke/linsticky/releases/download/v2.2.0/io.linsticky.app_2.2.0_all.deb
 
 # 2. Install dependencies
 sudo apt update
 sudo apt install -y python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-gtk-3.0 gir1.2-ayatanaappindicator3-0.1 gettext
 
 # 3. Install the package
-sudo apt install ./io.linsticky.app_2.1.0_all.deb
+sudo apt install ./io.linsticky.app_2.2.0_all.deb
 ```
 
 ### Run or build from source

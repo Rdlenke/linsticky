@@ -8,6 +8,9 @@ colors, adjusting font sizes, and toggling bulleted lists.
 from gi.repository import Gtk, Pango
 
 
+BULLET_PREFIX = " • "
+
+
 class StickyFormatting:
     """
     A mixin for `StickyWindow` that manages text formatting tags and actions.
@@ -111,6 +114,39 @@ class StickyFormatting:
         self.text_view.grab_focus()
         self._on_buffer_changed(self.buffer)
 
+    def continue_bullet_list(self) -> bool:
+        """Continue a bullet on Enter, or end the list on an empty item."""
+        bounds = self.buffer.get_selection_bounds()
+        cursor = bounds[0] if bounds else self.buffer.get_iter_at_mark(self.buffer.get_insert())
+        line_start = cursor.copy()
+        line_start.set_line_offset(0)
+        before_cursor = self.buffer.get_text(line_start, cursor, True)
+        if not before_cursor.startswith(BULLET_PREFIX):
+            return False
+
+        self.buffer.begin_user_action()
+        try:
+            if bounds:
+                self.buffer.delete(*bounds)
+
+            # Buffer edits invalidate existing iterators; obtain fresh ones.
+            cursor = self.buffer.get_iter_at_mark(self.buffer.get_insert())
+            line_start = cursor.copy()
+            line_start.set_line_offset(0)
+            line_end = cursor.copy()
+            if not line_end.ends_line():
+                line_end.forward_to_line_end()
+            line = self.buffer.get_text(line_start, line_end, True)
+            if not line[len(BULLET_PREFIX):].strip():
+                self.buffer.delete(line_start, line_end)
+            else:
+                self.buffer.insert(cursor, "\n" + BULLET_PREFIX)
+        finally:
+            self.buffer.end_user_action()
+
+        self.text_view.scroll_mark_onscreen(self.buffer.get_insert())
+        return True
+
     def toggle_bullet_list(self):
         """
         Toggles bullet points for the currently selected lines.
@@ -118,7 +154,6 @@ class StickyFormatting:
         If a line starts with a bullet, it's removed. Otherwise, a bullet is added.
         This operation is performed on all lines within the selection.
         """
-        BULLET_CHAR = " • "
         res = self.buffer.get_selection_bounds()
 
         start, end = res if res else (
@@ -136,8 +171,8 @@ class StickyFormatting:
         lines = text.split('\n')
 
         new_lines = [
-            line[len(BULLET_CHAR):] if line.startswith(BULLET_CHAR)
-            else f"{BULLET_CHAR}{line}" for line in lines
+            line[len(BULLET_PREFIX):] if line.startswith(BULLET_PREFIX)
+            else f"{BULLET_PREFIX}{line}" for line in lines
         ]
 
         self.buffer.begin_user_action()

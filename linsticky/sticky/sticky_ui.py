@@ -203,6 +203,8 @@ class StickyUI:
 
         # Attach the key controller directly to the text view.
         key_ctrl = Gtk.EventControllerKey.new()
+        # Handle list continuation before TextView inserts its default newline.
+        key_ctrl.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
         key_ctrl.connect("key-pressed", self._on_key_pressed)
         self.text_view.add_controller(key_ctrl)
 
