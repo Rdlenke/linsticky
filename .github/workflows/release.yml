@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag to release (for example, v2.1.0)
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -14,16 +20,19 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          ref: ${{ inputs.tag || github.ref }}
           persist-credentials: false
 
       - name: Check release version and notes
         run: |
           version=$(jq -r .version linsticky/app_info.json)
-          test "$GITHUB_REF_NAME" = "v$version"
-          test -f "release-notes/$GITHUB_REF_NAME.md"
+          test "$RELEASE_TAG" = "v$version"
+          test -f "release-notes/$RELEASE_TAG.md"
           echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
 
       - name: Install build and test dependencies
@@ -47,9 +56,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
+          gh release create "$RELEASE_TAG" \
             "dist/io.linsticky.app_${RELEASE_VERSION}_all.deb" dist/SHA256SUMS \
             --repo "$GITHUB_REPOSITORY" \
             --verify-tag \
             --title "LinSticky $RELEASE_VERSION" \
-            --notes-file "release-notes/$GITHUB_REF_NAME.md"
+            --notes-file "release-notes/$RELEASE_TAG.md"

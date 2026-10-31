@@ -102,6 +102,8 @@ Releases are published by `.github/workflows/release.yml` when a `v*` tag is pus
 Update the version in `linsticky/app_info.json`, `snap/snapcraft.yaml`, and this
 README, and add `release-notes/<tag>.md` before tagging. The workflow tests the
 tagged source and attaches a DEB package and SHA-256 checksum to the GitHub release.
+If a tag push does not start a run, use **Actions → Release → Run workflow** on
+`main` and enter the existing version tag; the workflow checks out that tag.
 
 ## Troubleshooting Localization
 
